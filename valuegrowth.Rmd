@@ -1,0 +1,128 @@
+---
+title: "Appendix 1. R Notebook"
+author: ""
+date: "11/18/2021"
+output:
+  word_document: default
+  pdf_document: default
+  html_document: default
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+
+FitFlextableToPage <- function(ft, pgwidth = 6){
+
+  ft_out <- ft %>% autofit()
+
+  ft_out <- width(ft_out, width = dim(ft_out)$widths*pgwidth /(flextable_dim(ft_out)$widths))
+  return(ft_out)
+}
+```
+
+```{r}
+library(ggplot2)
+library(dplyr)
+
+SPYGdata <- read.csv("SPYG.csv")
+SPYVdata <- read.csv("SPYV.csv")
+
+SPYGdata$Date <- as.Date(SPYGdata$Date, "%Y-%m-%d")
+SPYVdata$Date <- as.Date(SPYVdata$Date, "%Y-%m-%d")
+
+for (i in 1:length(SPYGdata$Close)) {
+  if (i == 1) {
+    SPYGdata$PercClose[1] <- 1
+    SPYVdata$PercClose[1] <- 1
+  }
+  else {
+    SPYGdata$PercClose[i] <- (SPYGdata$Close[i] - SPYGdata$Close[i - 1])/(SPYGdata$Close[i - 1])
+    SPYVdata$PercClose[i] <- (SPYVdata$Close[i] - SPYVdata$Close[i - 1])/(SPYVdata$Close[i - 1])
+  }
+}
+
+SPYGdata <- SPYGdata %>% slice(-c(1))
+SPYVdata <- SPYVdata %>% slice(-c(1))
+
+SPYGpercclosemean <- mean(SPYGdata$PercClose)
+SPYVpercclosemean <- mean(SPYVdata$PercClose)
+
+ggplot()+
+  geom_line(data = SPYGdata, aes(Date, PercClose), col = "red") +
+  geom_line(data = SPYVdata, aes(Date, PercClose), col = "darkblue") +
+  geom_hline(yintercept = SPYGpercclosemean, linetype = "dashed", col = "red") + 
+  geom_hline(yintercept = SPYVpercclosemean, linetype = "dashed", col = "darkblue") + ggtitle("Percentage Change in Close Prices, Nov. 2016 - Nov. 2021") + xlab("Year") + ylab("Percent") + labs(subtitle = "SPYG: RED, SPYV: DARK BLUE. DOTTED LINES REPRESENT 5 YEAR MEANS.") + theme(plot.subtitle = element_text(size=7))
+```
+
+```{r}
+for (i in 1:length(SPYGdata$PercClose)) {
+  SPYVdata$Spread[i] <- SPYVdata$PercClose[i] - SPYGdata$PercClose[i]
+}
+spreadmean <- mean(SPYVdata$Spread)
+
+ggplot()+
+  geom_line(data = SPYVdata, aes(Date, Spread), col = "darkblue") +
+  geom_hline(yintercept = spreadmean, linetype = "dashed", col = "darkblue") + ggtitle("Value-Growth Spread, Nov. 2016 - Nov. 2021") + xlab("Year") + ylab("Value - Growth Spread (%)") + labs(subtitle = "DOTTED LINE REPRESENTS 5 YEAR MEAN.") + theme(plot.subtitle = element_text(size=7))
+```
+
+```{r}
+GDPdata <- read.csv("GDPdata.csv")
+GDPdata <- data.frame(GDPdata$date, GDPdata$change)
+names(GDPdata)[1] <- "Date"
+names(GDPdata)[2] <- "GDPChange"
+GDPdata$Date <- as.Date(GDPdata$Date, "%m/%d/%Y")
+ggplot() + geom_line(data = GDPdata, aes(Date, GDPChange), col = "darkblue") + ggtitle("GDP Change, 2016 Q3 - 2021 Q3") +  xlab("Year") + ylab("GDP Change (%)")
+```
+
+```{r}
+InterestRatesdata <- read.csv("interestrates.csv")
+names(InterestRatesdata)[1] <- "Date"
+names(InterestRatesdata)[2] <- "Rates"
+InterestRatesdata <- InterestRatesdata[InterestRatesdata$Rates != ".",]
+InterestRatesdata$Rates <- as.numeric(InterestRatesdata$Rates)
+InterestRatesdata$Date <- as.Date(InterestRatesdata$Date, "%Y-%m-%d")
+
+ggplot() + geom_line(data = InterestRatesdata, aes(Date, Rates), col = "darkblue") + ggtitle("Market Yield on U.S. Treasury Securities at 10-Year Constant Maturity, Sep. 2016 - Nov. 2021") +  xlab("Year") + ylab("Percent") + theme(plot.title = element_text(size=10))
+```
+
+
+```{r}
+SPYGmaxdata <- read.csv("SPYGmax.csv")
+SPYVmaxdata <- read.csv("SPYVmax.csv")
+
+SPYGmaxdata$Date <- as.Date(SPYGmaxdata$Date, "%Y-%m-%d")
+SPYVmaxdata$Date <- as.Date(SPYVmaxdata$Date, "%Y-%m-%d")
+
+for (i in 1:length(SPYGmaxdata$Close)) {
+  if (i == 1) {
+    SPYGmaxdata$PercClose[1] <- 1
+    SPYVmaxdata$PercClose[1] <- 1
+  }
+  else {
+    SPYGmaxdata$PercClose[i] <- (SPYGmaxdata$Close[i] - SPYGmaxdata$Close[i - 1])/(SPYGmaxdata$Close[i - 1])
+    SPYVmaxdata$PercClose[i] <- (SPYVmaxdata$Close[i] - SPYVmaxdata$Close[i - 1])/(SPYVmaxdata$Close[i - 1])
+  }
+}
+
+SPYGmaxdata <- SPYGmaxdata %>% slice(-c(1))
+SPYVmaxdata <- SPYVmaxdata %>% slice(-c(1))
+
+SPYGmaxpercclosemean <- mean(SPYGmaxdata$PercClose)
+SPYVmaxpercclosemean <- mean(SPYVmaxdata$PercClose)
+
+ggplot()+
+  geom_line(data = SPYGmaxdata, aes(Date, PercClose), col = "red") +
+  geom_line(data = SPYVmaxdata, aes(Date, PercClose), col = "darkblue") +
+  geom_hline(yintercept = SPYGmaxpercclosemean, linetype = "dashed", col = "red") + 
+  geom_hline(yintercept = SPYVmaxpercclosemean, linetype = "dashed", col = "darkblue") + ggtitle("Percentage Change in Close Prices, Nov. 2000 - Nov. 2021") + xlab("Year") + ylab("Percent") + labs(subtitle = "SPYG: RED, SPYV: DARK BLUE. DOTTED LINES REPRESENT MEANS.") + theme(plot.subtitle = element_text(size=7))
+
+for (i in 1:length(SPYGmaxdata$PercClose)) {
+  SPYVmaxdata$Spread[i] <- SPYVmaxdata$PercClose[i] - SPYGmaxdata$PercClose[i]
+}
+maxspreadmean <- mean(SPYVmaxdata$Spread)
+
+ggplot()+
+  geom_line(data = SPYVmaxdata, aes(Date, Spread), col = "darkblue") +
+  geom_hline(yintercept = maxspreadmean, linetype = "dashed", col = "darkblue") + ggtitle("Value-Growth Spread, Nov. 2000 - Nov. 2021") + xlab("Year") + ylab("Value - Growth Spread (%)") + labs(subtitle = "DOTTED LINE REPRESENTS MEAN.") + theme(plot.subtitle = element_text(size=7))
+```
+
